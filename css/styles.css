@@ -1,0 +1,147 @@
+body {
+  background-color: #f1ecdc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+  font-size: 20px;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+}
+
+footer {
+  background-color: #deccba;
+  width: 100%;
+}
+
+.title {
+  font-size: 3rem;
+  background-color: #eed4ac;
+  color: #666666;
+  box-shadow: 2px 2px 5px grey;
+  font-family:monospace;
+  border-radius: 1rem;
+  width: 8rem;
+  margin: 1rem;
+  text-align: center;
+}
+
+.new-game {
+  background-color: #eed4ac;
+  border-radius: 1rem;
+  box-shadow: 2px 2px 5px grey;
+  width: 15rem;
+  height: 3rem;
+  margin: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.new-game:hover {
+  background-color: #e0c7a0;
+  box-shadow: inset 1px 1px 5px grey;
+}
+
+.main-top-section {
+  height: 5rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.main-grid-container {
+  border-radius: 1rem;
+  width: 40rem;
+  height: 40rem;
+  box-shadow: 2px 2px 5px grey;
+  display: grid;
+  grid-template-columns: auto auto auto auto;
+  background-color: #eed4ac;
+  justify-content: space-evenly;
+  align-content: space-evenly;
+}
+
+.grid-item {
+  border-radius: 1rem;
+  background-color: #f2dfc1;
+  box-shadow: inset 2px 2px 5px grey;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 9rem;
+  width: 9rem;
+  font-size: 3rem;
+}
+
+.main-bot-section {
+  height: 5rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.current-score {
+  width: 50%;
+  height: 4rem;
+  margin: 1rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.current-score .label {
+  background-color: #eed4ac;
+  box-shadow: 2px 2px 5px grey;
+  border-radius: 1rem;
+  padding: .5rem;
+  width: 40%;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+.current-score .value {
+  width: 60%;
+  font-size: 20px;
+  text-align: center;
+}
+
+.highscore {
+  width: 50%;
+  height: 4rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.highscore .label {
+  background-color: #eed4ac;
+  box-shadow: 2px 2px 5px grey;
+  border-radius: 1rem;
+  padding: .5rem;
+  width: 40%;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+.highscore .value {
+  width: 60%;
+  font-size: 20px;
+  text-align: center;
+}
+
+.footer-stuff {
+  height: 2rem;
+}
