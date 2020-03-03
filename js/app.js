@@ -104,6 +104,8 @@ const game = {
         }
       }
     }
+    let score = document.querySelector('.current-score').children[1];
+    score.innerHTML = this.score;
   },
   shiftUp() {
     for (let y = 0; y < 4; y++) {
@@ -128,6 +130,7 @@ const game = {
                   this.boardGridTiles[tempTile.y - 1][tempTile.x].value *= 2;
                   this.boardGridTiles[tempTile.y - 1][tempTile.x].hasBeenMerged = true;
                   numbersMerged = true;
+                  this.score += this.boardGridTiles[tempTile.y - 1][tempTile.x].value;
                 }
                 shifting = false;
               } else {
@@ -167,6 +170,7 @@ const game = {
                   this.boardGridTiles[tempTile.y + 1][tempTile.x].value *= 2;
                   this.boardGridTiles[tempTile.y + 1][tempTile.x].hasBeenMerged = true;
                   numbersMerged = true;
+                  this.score += this.boardGridTiles[tempTile.y + 1][tempTile.x].value;
                 }
                 shifting = false;
               } else {
@@ -206,6 +210,7 @@ const game = {
                   this.boardGridTiles[tempTile.y][tempTile.x - 1].value *= 2;
                   this.boardGridTiles[tempTile.y][tempTile.x - 1].hasBeenMerged = true;
                   numbersMerged = true;
+                  this.score += this.boardGridTiles[tempTile.y][tempTile.x - 1].value;
                 }
                 shifting = false;
               } else {
@@ -245,6 +250,7 @@ const game = {
                   this.boardGridTiles[tempTile.y][tempTile.x + 1].value *= 2;
                   this.boardGridTiles[tempTile.y][tempTile.x + 1].hasBeenMerged = true;
                   numbersMerged = true;
+                  this.score += this.boardGridTiles[tempTile.y][tempTile.x + 1].value;
                 }
                 shifting = false;
               } else {
