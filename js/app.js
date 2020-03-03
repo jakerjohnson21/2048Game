@@ -1,20 +1,22 @@
 //Listeners for arrow keys
-document.onkeydown = checkKey;
+document.onkeyup = checkKey;
 function checkKey(e) {
+
   e = e || window.event;
-  if (e.keyCode == '38') {
-    //up arrow
+  //Prevents window scrolling when arrow keys are clicked
+  e.preventDefault();
+  if (e.keyCode == '87') { // W key (Up)
     game.shiftUp();
-  } else if (e.keyCode == '40') {
-    //down arrow
+  } else if (e.keyCode == '83') { // S key (Down)
     game.shiftDown();
-  } else if (e.keyCode == '37') {
-    //left arrow
-  } else if (e.keyCode == '39') {
-    //right arrow
-  } else if (e.keyCode == '78') {
-    //hit n to spawn numbers for testing
+  } else if (e.keyCode == '65') { // A key (Left)
+    game.shiftLeft();
+  } else if (e.keyCode == '68') { // D key (Right)
+    game.shiftRight();
+  } else if (e.keyCode == '78') { //hit n to spawn numbers for testing
     game.spawnRandomNumbers();
+  } else if (e.keyCode == '84') { // T key for test case
+    game.makeTestCase();
   }
 }
 
@@ -26,6 +28,9 @@ const game = {
   tiles: [],
   newGame() {
     this.initializeBoard();
+    for (let x = 0; x < 2; x++) {
+      this.spawnRandomNumbers();
+    }
   },
   initializeBoard() {
     //Initialize grid
@@ -48,7 +53,7 @@ const game = {
     let tileRow = [];
     for (let y = 0; y < 4; y++) {
       for (let x = 0; x < 4; x++) {
-        tileRow.push(new numberTile(null, null, null));
+        tileRow.push(new numberTile(null, null, null, null));
       }
       this.boardGridTiles.push(tileRow);
       tileRow = [];
@@ -70,7 +75,6 @@ const game = {
 
     //Spawn in either a 2 or 4 at random empty locations
     if (!isFull) {
-      for (let a = 0; a < 2; a++) {
         while(!inValidSpot) {
           randY = Math.floor(Math.random() * 4);
           randX = Math.floor(Math.random() * 4);
@@ -81,64 +85,202 @@ const game = {
             } else {
               value = 4;
             }
-            let tile = new numberTile(randY, randX, value);
+            let tile = new numberTile(randY, randX, value, false);
             this.boardGridTiles[randY][randX] = tile;
             this.boardGridDOM[randY][randX].innerHTML = value;
             inValidSpot = true;
           }
         }
         inValidSpot = false;
-      }
     }
   },
   updateBoard() {
-    //Make all tiles empty
-    for (let boardY = 0; boardY < 4; boardY++) {
-      for (let boardX = 0; boardX < 4; boardX++) {
-        this.boardGridDOM[boardY][boardX].innerHTML = '';
-      }
-    }
-
-    //Fill in tiles with corresponding values
-    this.boardGridTiles.forEach(gridTile => {
-      if (gridTile != null) {
-        this.boardGridDOM[gridTile.y][gridTile.x].innerHTML = gridTile.value;
-      }
-    });
-  },
-  shiftUp() {
-    this.tiles.forEach(tile => {
-      for (let gridY = tile.y; gridY >= 0; gridY--) {
-        if ((gridY - 1 >= 0) && (this.boardGrid[gridY - 1][tile.x].innerHTML == '')) {
-          tile.y -= 1;
+    for (let y = 0; y < 4; y++) {
+      for (let x = 0; x < 4; x++) {
+        if (this.boardGridTiles[y][x].value != null) {
+          this.boardGridDOM[y][x].innerHTML = this.boardGridTiles[y][x].value;
+        } else {
+          this.boardGridDOM[y][x].innerHTML = '';
         }
       }
-    });
+    }
+  },
+  shiftUp() {
+    for (let y = 0; y < 4; y++) {
+      for (let x = 0; x < 4; x++) {
+        if (this.boardGridTiles[y][x].value != null) {
+          //Creates a temporary tile for the value so that it can be shifted
+          let tempTile = this.boardGridTiles[y][x];
+
+          //The variable shifting keeps the loops runnnig so that the certain tile moves
+          //in the right direction until it encounters and obstacle
+          let shifting = true;
+          //Numbers merged prevents a tile from being merged multiple times in one move.
+          let numbersMerged = false;
+
+          while(shifting) {
+            //If tile encounters the edge of the grid, stop shifting
+            if (tempTile.y - 1 < 0) {
+              shifting = false;
+            } else if (this.boardGridTiles[tempTile.y - 1][tempTile.x].value != null) { //If shifting tile encounters another tile on the grid
+              if (this.boardGridTiles[tempTile.y - 1][tempTile.x].value == tempTile.value) { //If shifting tile's value is the same as the other tile, double value of other tile.
+                if (!this.boardGridTiles[tempTile.y - 1][tempTile.x].hasBeenMerged) { //If that other tile has already been merged this turn, then don't merge again
+                  this.boardGridTiles[tempTile.y - 1][tempTile.x].value *= 2;
+                  this.boardGridTiles[tempTile.y - 1][tempTile.x].hasBeenMerged = true;
+                  numbersMerged = true;
+                }
+                shifting = false;
+              } else {
+                shifting = false;
+              }
+            } else {
+              tempTile.y -= 1; //If none of the other cases apply, then shift the tile
+            }
+          }
+
+          this.boardGridTiles[y][x] = new numberTile(null, null, null, null);
+
+          if(!numbersMerged) { //If numbers did not merge, then place shifting tile in its new location
+            this.boardGridTiles[tempTile.y][tempTile.x] = tempTile;
+          }
+        }
+      }
+    }
+    this.resetHasBeenMerged();
     this.updateBoard();
   },
   shiftDown() {
-    console.log(this.boardGrid);
-    for (let boardY = 3; boardY >= 0; boardY--) {
-      for (let boardX = 0; boardX < 4; boardX++) {
-        if (this.boardGrid[boardY][boardX] != '') {
-          console.log('num');
+    for (let y = 3; y >= 0; y--) {
+      for (let x = 0; x < 4; x++) {
+        if (this.boardGridTiles[y][x].value != null) {
+          let tempTile = this.boardGridTiles[y][x];
+
+          let shifting = true;
+          let numbersMerged = false;
+
+          while(shifting) {
+            if (tempTile.y + 1 > 3) {
+              shifting = false;
+            } else if (this.boardGridTiles[tempTile.y + 1][tempTile.x].value != null) {
+              if (this.boardGridTiles[tempTile.y + 1][tempTile.x].value == tempTile.value) {
+                if (!this.boardGridTiles[tempTile.y + 1][tempTile.x].hasBeenMerged) {
+                  this.boardGridTiles[tempTile.y + 1][tempTile.x].value *= 2;
+                  this.boardGridTiles[tempTile.y + 1][tempTile.x].hasBeenMerged = true;
+                  numbersMerged = true;
+                }
+                shifting = false;
+              } else {
+                shifting = false;
+              }
+            } else {
+              tempTile.y += 1;
+            }
+          }
+
+          this.boardGridTiles[y][x] = new numberTile(null, null, null, null);
+
+          if(!numbersMerged) {
+            this.boardGridTiles[tempTile.y][tempTile.x] = tempTile;
+          }
         }
       }
     }
+    this.resetHasBeenMerged();
+    this.updateBoard();
   },
   shiftLeft() {
+    for (let y = 0; y < 4; y++) {
+      for (let x = 0; x < 4; x++) {
+        if (this.boardGridTiles[y][x].value != null) {
+          let tempTile = this.boardGridTiles[y][x];
 
+          let shifting = true;
+          let numbersMerged = false;
+
+          while(shifting) {
+            if (tempTile.x - 1 < 0) {
+              shifting = false;
+            } else if (this.boardGridTiles[tempTile.y][tempTile.x - 1].value != null) {
+              if (this.boardGridTiles[tempTile.y][tempTile.x - 1].value == tempTile.value) {
+                if (!this.boardGridTiles[tempTile.y][tempTile.x - 1].hasBeenMerged) {
+                  this.boardGridTiles[tempTile.y][tempTile.x - 1].value *= 2;
+                  this.boardGridTiles[tempTile.y][tempTile.x - 1].hasBeenMerged = true;
+                  numbersMerged = true;
+                }
+                shifting = false;
+              } else {
+                shifting = false;
+              }
+            } else {
+              tempTile.x -= 1;
+            }
+          }
+
+          this.boardGridTiles[y][x] = new numberTile(null, null, null, null);
+
+          if(!numbersMerged) {
+            this.boardGridTiles[tempTile.y][tempTile.x] = tempTile;
+          }
+        }
+      }
+    }
+    this.resetHasBeenMerged();
+    this.updateBoard();
   },
   shiftRight() {
+    for (let y = 0; y < 4; y++) {
+      for (let x = 3; x >= 0; x--) {
+        if (this.boardGridTiles[y][x].value != null) {
+          let tempTile = this.boardGridTiles[y][x];
 
+          let shifting = true;
+          let numbersMerged = false;
+
+          while(shifting) {
+            if (tempTile.x + 1 > 3) {
+              shifting = false;
+            } else if (this.boardGridTiles[tempTile.y][tempTile.x + 1].value != null) {
+              if (this.boardGridTiles[tempTile.y][tempTile.x + 1].value == tempTile.value) {
+                if (!this.boardGridTiles[tempTile.y][tempTile.x + 1].hasBeenMerged) {
+                  this.boardGridTiles[tempTile.y][tempTile.x + 1].value *= 2;
+                  this.boardGridTiles[tempTile.y][tempTile.x + 1].hasBeenMerged = true;
+                  numbersMerged = true;
+                }
+                shifting = false;
+              } else {
+                shifting = false;
+              }
+            } else {
+              tempTile.x += 1;
+            }
+          }
+
+          this.boardGridTiles[y][x] = new numberTile(null, null, null, null);
+
+          if(!numbersMerged) {
+            this.boardGridTiles[tempTile.y][tempTile.x] = tempTile;
+          }
+        }
+      }
+    }
+    this.resetHasBeenMerged();
+    this.updateBoard();
+  },
+  resetHasBeenMerged() {
+    for (let y = 0; y < 4; y++) {
+      for (let x = 0; x < 4; x++) {
+        this.boardGridTiles[y][x].hasBeenMerged = false;
+      }
+    }
   }
 };
 
 class numberTile {
-  constructor(y, x, value) {
+  constructor(y, x, value, merged) {
     this.y = y;
     this.x = x;
     this.value = value;
+    this.hasBeenMerged = merged
   }
 }
 
