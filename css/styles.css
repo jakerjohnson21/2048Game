@@ -22,6 +22,14 @@ main {
 footer {
   background-color: #deccba;
   width: 100%;
+  display: flex;
+  align-content: center;
+  justify-content: flex-end;
+}
+
+a {
+  color: inherit;
+  padding: 5px;
 }
 
 .title {
@@ -144,4 +152,7 @@ footer {
 
 .footer-stuff {
   height: 2rem;
+  display: flex;
+  align-items: center;
+  color: grey;
 }

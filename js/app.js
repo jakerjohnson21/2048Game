@@ -14,7 +14,7 @@ function checkKey(e) {
   } else if (e.keyCode == '68') { // D key (Right)
     game.shiftRight();
   } else if (e.keyCode == '78') { //hit n to spawn numbers for testing
-    game.spawnRandomNumbers();
+    game.spawnRandomNumber();
   } else if (e.keyCode == '84') { // T key for test case
     game.makeTestCase();
   }
@@ -29,7 +29,7 @@ const game = {
   newGame() {
     this.initializeBoard();
     for (let x = 0; x < 2; x++) {
-      this.spawnRandomNumbers();
+      this.spawnRandomNumber();
     }
   },
   initializeBoard() {
@@ -37,6 +37,18 @@ const game = {
     this.boardGridDOM = [];
     this.boardGridTiles = [];
     this.tiles = [];
+    this.score = 0;
+
+    this.updateCurrentScore();
+
+    console.log('Test');
+    console.log(localStorage.getItem('highscore'));
+
+    if (localStorage.getItem('highscore') != undefined) {
+      this.highscore = localStorage.getItem('highscore');
+      this.updateHighScore();
+    }
+
     //boardGridDOM keeps track of all HTML elements to modify their innerHTML
     let gridItems = document.querySelectorAll('.grid-item');
     let gridRow = [];
@@ -59,55 +71,53 @@ const game = {
       tileRow = [];
     }
   },
-  spawnRandomNumbers() {
+  spawnRandomNumber() {
     let inValidSpot = false;
     let randY, randX, randDecider, value;
 
-    //Checks if grid is full, if yes then prevent spawning new values (Avoiding inf. loop)
-    let isFull = true;
-    for (let y = 0; y < 4; y++) {
-      for (let x = 0; x < 4; x++) {
-        if (this.boardGridTiles[y][x].value == null) {
-          isFull = false;
+    //Spawn in either a 2 or 4 at random empty location
+      while(!inValidSpot) {
+        randY = Math.floor(Math.random() * 4);
+        randX = Math.floor(Math.random() * 4);
+        if (this.boardGridDOM[randY][randX].innerHTML == '') {
+          let randDecider = Math.floor(Math.random() * 2);
+          if (randDecider == 0) {
+            value = 2;
+          } else {
+            value = 4;
+          }
+          let tile = new numberTile(randY, randX, value, false);
+          this.boardGridTiles[randY][randX] = tile;
+          this.boardGridDOM[randY][randX].innerHTML = value;
+          inValidSpot = true;
+          this.updateBoard();
         }
       }
-    }
-
-    //Spawn in either a 2 or 4 at random empty locations
-    if (!isFull) {
-        while(!inValidSpot) {
-          randY = Math.floor(Math.random() * 4);
-          randX = Math.floor(Math.random() * 4);
-          if (this.boardGridDOM[randY][randX].innerHTML == '') {
-            let randDecider = Math.floor(Math.random() * 2);
-            if (randDecider == 0) {
-              value = 2;
-            } else {
-              value = 4;
-            }
-            let tile = new numberTile(randY, randX, value, false);
-            this.boardGridTiles[randY][randX] = tile;
-            this.boardGridDOM[randY][randX].innerHTML = value;
-            inValidSpot = true;
-          }
-        }
-        inValidSpot = false;
-    }
+    inValidSpot = false;
   },
   updateBoard() {
     for (let y = 0; y < 4; y++) {
       for (let x = 0; x < 4; x++) {
         if (this.boardGridTiles[y][x].value != null) {
           this.boardGridDOM[y][x].innerHTML = this.boardGridTiles[y][x].value;
+          this.boardGridDOM[y][x].style.backgroundColor = getValueColor(this.boardGridTiles[y][x].value);
         } else {
           this.boardGridDOM[y][x].innerHTML = '';
+          this.boardGridDOM[y][x].style.backgroundColor = '#f2dfc1';
         }
       }
     }
+  },
+  updateCurrentScore() {
     let score = document.querySelector('.current-score').children[1];
     score.innerHTML = this.score;
   },
+  updateHighScore() {
+    let highscore = document.querySelector('.highscore').children[1];
+    highscore.innerHTML = this.highscore;
+  },
   shiftUp() {
+    let tileWasShifted = false;
     for (let y = 0; y < 4; y++) {
       for (let x = 0; x < 4; x++) {
         if (this.boardGridTiles[y][x].value != null) {
@@ -131,6 +141,7 @@ const game = {
                   this.boardGridTiles[tempTile.y - 1][tempTile.x].hasBeenMerged = true;
                   numbersMerged = true;
                   this.score += this.boardGridTiles[tempTile.y - 1][tempTile.x].value;
+                  tileWasShifted = true;
                 }
                 shifting = false;
               } else {
@@ -138,6 +149,7 @@ const game = {
               }
             } else {
               tempTile.y -= 1; //If none of the other cases apply, then shift the tile
+              tileWasShifted = true;
             }
           }
 
@@ -149,10 +161,25 @@ const game = {
         }
       }
     }
+
     this.resetHasBeenMerged();
     this.updateBoard();
+    this.updateCurrentScore();
+
+    if (tileWasShifted) {
+      this.spawnRandomNumber();
+    }
+
+    if (this.boardIsFull()) {
+      if (this.gameIsOver()) {
+        alert('You Lose');
+        this.finishGame();
+      }
+    }
   },
   shiftDown() {
+    let tileWasShifted = false;
+
     for (let y = 3; y >= 0; y--) {
       for (let x = 0; x < 4; x++) {
         if (this.boardGridTiles[y][x].value != null) {
@@ -171,6 +198,7 @@ const game = {
                   this.boardGridTiles[tempTile.y + 1][tempTile.x].hasBeenMerged = true;
                   numbersMerged = true;
                   this.score += this.boardGridTiles[tempTile.y + 1][tempTile.x].value;
+                  tileWasShifted = true;
                 }
                 shifting = false;
               } else {
@@ -178,6 +206,7 @@ const game = {
               }
             } else {
               tempTile.y += 1;
+              tileWasShifted = true;
             }
           }
 
@@ -189,10 +218,24 @@ const game = {
         }
       }
     }
+
     this.resetHasBeenMerged();
     this.updateBoard();
+    this.updateCurrentScore();
+
+    if (tileWasShifted) {
+      this.spawnRandomNumber();
+    }
+
+    if (this.boardIsFull()) {
+      if (this.gameIsOver()) {
+        alert('You Lose');
+        this.finishGame();
+      }
+    }
   },
   shiftLeft() {
+    let tileWasShifted = false;
     for (let y = 0; y < 4; y++) {
       for (let x = 0; x < 4; x++) {
         if (this.boardGridTiles[y][x].value != null) {
@@ -211,6 +254,7 @@ const game = {
                   this.boardGridTiles[tempTile.y][tempTile.x - 1].hasBeenMerged = true;
                   numbersMerged = true;
                   this.score += this.boardGridTiles[tempTile.y][tempTile.x - 1].value;
+                  tileWasShifted = true;
                 }
                 shifting = false;
               } else {
@@ -218,6 +262,7 @@ const game = {
               }
             } else {
               tempTile.x -= 1;
+              tileWasShifted = true;
             }
           }
 
@@ -229,10 +274,24 @@ const game = {
         }
       }
     }
+
     this.resetHasBeenMerged();
     this.updateBoard();
+    this.updateCurrentScore();
+
+    if (tileWasShifted) {
+      this.spawnRandomNumber();
+    }
+
+    if (this.boardIsFull()) {
+      if (this.gameIsOver()) {
+        alert('You Lose');
+        this.finishGame();
+      }
+    }
   },
   shiftRight() {
+    let tileWasShifted = false;
     for (let y = 0; y < 4; y++) {
       for (let x = 3; x >= 0; x--) {
         if (this.boardGridTiles[y][x].value != null) {
@@ -251,6 +310,7 @@ const game = {
                   this.boardGridTiles[tempTile.y][tempTile.x + 1].hasBeenMerged = true;
                   numbersMerged = true;
                   this.score += this.boardGridTiles[tempTile.y][tempTile.x + 1].value;
+                  tileWasShifted = true;
                 }
                 shifting = false;
               } else {
@@ -258,6 +318,7 @@ const game = {
               }
             } else {
               tempTile.x += 1;
+              tileWasShifted = true;
             }
           }
 
@@ -271,6 +332,17 @@ const game = {
     }
     this.resetHasBeenMerged();
     this.updateBoard();
+    this.updateCurrentScore();
+    if (tileWasShifted) {
+      this.spawnRandomNumber();
+    }
+
+    if (this.boardIsFull()) {
+      if (this.gameIsOver()) {
+        alert('You Lose');
+        this.finishGame();
+      }
+    }
   },
   resetHasBeenMerged() {
     for (let y = 0; y < 4; y++) {
@@ -278,6 +350,57 @@ const game = {
         this.boardGridTiles[y][x].hasBeenMerged = false;
       }
     }
+  },
+  boardIsFull() {
+    //Checks if grid is full, if yes then prevent spawning new values (Avoiding inf. loop)
+    let isFull = true;
+    for (let y = 0; y < 4; y++) {
+      for (let x = 0; x < 4; x++) {
+        if (this.boardGridDOM[y][x].innerHTML == '') {
+          isFull = false;
+        }
+      }
+    }
+    return isFull;
+  },
+  gameIsOver() { //Iterates through each tile and checks if it has an adjacent tile with the same value to determine if game is over.
+    let gameOver = true;
+    for (let y = 0; y < 4; y++) {
+      for (let x = 0; x < 4; x++) {
+        //Check the tile above
+        if (this.boardGridTiles[y - 1]) {
+          if (this.boardGridTiles[y - 1][x].value == this.boardGridTiles[y][x].value) {
+            gameOver = false;
+          }
+        }
+        //Check the tile below
+        if (this.boardGridTiles[y + 1]) {
+          if (this.boardGridTiles[y + 1][x].value == this.boardGridTiles[y][x].value) {
+            gameOver = false;
+          }
+        }
+        //Check the tile to the left
+        if (this.boardGridTiles[y][x - 1]) {
+          if (this.boardGridTiles[y][x - 1].value == this.boardGridTiles[y][x].value) {
+            gameOver = false;
+          }
+        }
+        //Check the tile to the right
+        if (this.boardGridTiles[y][x + 1]) {
+          if (this.boardGridTiles[y][x + 1].value == this.boardGridTiles[y][x].value) {
+            gameOver = false;
+          }
+        }
+      }
+    }
+
+    return gameOver;
+  },
+  finishGame() {
+    if (this.score > this.highscore) {
+      localStorage.setItem('highscore', this.highscore);
+    }
+    this.updateHighScore()
   }
 };
 
@@ -287,6 +410,33 @@ class numberTile {
     this.x = x;
     this.value = value;
     this.hasBeenMerged = merged
+  }
+}
+
+function getValueColor(value) {
+  switch(value) {
+    case 2:
+      return '#ede4db';
+    case 4:
+      return '#ebe0cb';
+    case 8:
+      return '#e9b483';
+    case 16:
+      return '#e99a6e';
+    case 32:
+      return '#e78267';
+    case 64:
+      return '#e66848';
+    case 128:
+      return '#e3ca7c';
+    case 256:
+      return '#e8cc72';
+    case 512:
+      return '#e8c865';
+    case 1024:
+      return '#e7c559';
+    case 2048:
+      return '#e7c24e';
   }
 }
 
