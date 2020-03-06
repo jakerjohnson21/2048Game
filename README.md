@@ -16,6 +16,8 @@ Then use keys to shift numbers:
   * 'A' : left
   * 'D' : right
 
+Combine tiles with equal value and try to reach 2048!
+
 ### License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
