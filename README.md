@@ -1,6 +1,6 @@
 # Jake's 2048
 
-One Paragraph of project description goes here
+This is my remake of the 2048 game. Here's the original game: https://play2048.co
 
 ## Getting Started
 
