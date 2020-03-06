@@ -41,11 +41,8 @@ const game = {
 
     this.updateCurrentScore();
 
-    console.log('Test');
-    console.log(localStorage.getItem('highscore'));
-
     if (localStorage.getItem('highscore') != undefined) {
-      this.highscore = localStorage.getItem('highscore');
+      this.highscore = parseInt(localStorage.getItem('highscore'), 10);
       this.updateHighScore();
     }
 
@@ -398,7 +395,7 @@ const game = {
   },
   finishGame() {
     if (this.score > this.highscore) {
-      localStorage.setItem('highscore', this.highscore);
+      localStorage.setItem('highscore', this.score);
     }
     this.updateHighScore()
   }
